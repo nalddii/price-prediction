@@ -1,0 +1,12 @@
+# Python ignores
+__pycache__/
+*.py[cod]
+venv/
+env/
+images/
+
+# Data and environment files
+*.csv
+*.json
+.ipynb_checkpoints/
+.env

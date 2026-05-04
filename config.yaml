@@ -1,0 +1,8 @@
+# config.yaml
+data_dir: "data"
+train_path: "data/train/ecommerce_price_prediction-train.csv"
+models_dir: "models"
+output_dir: "data"
+
+# Available models: a3_global (best), a1_global
+default_model: "a3_global"
