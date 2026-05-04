@@ -140,7 +140,7 @@ def detect_price_outliers_per_product(df, key=None,
     return summary, flags
 
 
-def remove_flagged_outliers(df, flags, verbose=True):
+def remove_flagged_outliers(df, flags, verbose=False):
     """
     Drop rows flagged as outliers and return a clean copy.
     """

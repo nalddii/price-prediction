@@ -125,13 +125,18 @@ def _predict_with_ridges(df, models):
     preds = np.full(len(df), np.nan)
     feat_arr = df[A2_RIDGE_FEATS].fillna(0).values
     keys_arr = df[A2_GROUPING].values
+
     for i in range(len(df)):
         k = tuple(keys_arr[i])
         if k not in models:
-            continue
-        m, p_min, p_max = models[k]
-        pred = float(np.exp(m.predict(feat_arr[i:i+1])[0]))
-        preds[i] = np.clip(pred, p_min * 0.5, p_max * 2.0)
+            continue                                 # truly unseen → NaN
+        entry = models[k]
+        if entry[0] == "median":
+            preds[i] = entry[1]                      # constant fallback
+        else:                                        # entry[0] == "ridge"
+            _, m, p_min, p_max = entry
+            pred = float(np.exp(m.predict(feat_arr[i:i+1])[0]))
+            preds[i] = np.clip(pred, p_min * 0.5, p_max * 2.0)
     return preds
 
 
@@ -141,7 +146,6 @@ def predict_a2(test_df, train_df, models):
         raw = _predict_with_ridges(feat, models)
         return raw, feat["cat_id_hist"].values
     return _run_inference(test_df, train_df, _predict)
-
 
 # ---------------------------------------------------------------------------
 # Approach 3 — Full Pipeline (history + anchor state, log-residual target)
