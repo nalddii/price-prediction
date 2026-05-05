@@ -1,24 +1,14 @@
-# Technical Report — Price Prediction Pipeline
+#Price Prediction Pipeline
 
-## 1. Brief Explanation on the Approach
-
-This project solves an outage-day price reconstruction task. On the outage day, most product-level features are unavailable, but 100 same-day anchor rows with true prices are provided. The goal is to reconstruct the missing product prices as accurately as possible using historical data and the anchor rows.
-
-Exploratory analysis shows that this task is closer to a **change-detection problem** than a standard forecasting problem. Around **87% of products have constant prices across all observations**, which means the strongest signal is often the last known price. The main challenge is identifying when a product price has changed due to promotions, discounts, relistings, or marketplace-wide effects.
-
-The final pipeline is built around three main ideas:
-
-1. Use historical product prices as the strongest product-level signal.
-2. Use same-day anchor rows to estimate marketplace and category-level price shifts.
-3. Predict in log-space to handle the very wide price scale.
+This project solves an outage-day price. The goal is to reconstruct the missing product prices as accurately as possible using historical data and the anchor rows.
 
 Three approaches were tested:
 
 - **Approach 1 — Naive Global LightGBM**
 - **Approach 2 — Per-Product Ridge Regression**
-- **Approach 3 — Full Pipeline with historical features and anchor calibration**
+- **Approach 3 — Global LightGBM with historical features and anchor calibration**
 
-The final selected approach is **Approach 3 with L1 and L2 anchor calibration**, because it combines product history, marketplace-wide anchor signals, category-level correction, and robust log-space modelling.
+The final selected approach is **Approach 3**, because it combines product history, marketplace-wide anchor signals, category-level correction, and robust log-space modelling.
 
 ---
 
@@ -26,114 +16,19 @@ The final selected approach is **Approach 3 with L1 and L2 anchor calibration**,
 
 ### 2.1 Exploratory Data Analysis
 
-The exploratory analysis showed several important characteristics of the dataset.
-
 #### Price stability
 
-Around **87% of products have constant prices across all observations**. The median `range_ratio` is **1.00**, and the 99th percentile is **1.76**.
-
-This means that for most products, price does not change often. Therefore, `last_price` becomes the dominant predictor.
-
-This finding motivated two modelling choices:
-
-- use the last observed price as a key feature;
-- predict the change from the last price rather than predicting absolute price directly.
-
-#### Wide price scale
-
-Prices range from approximately **1,000 IDR to more than 100 million IDR**, spanning more than five orders of magnitude.
-
-Because of this, absolute-error metrics such as MAE and RMSE are less representative of typical model performance. A model may have a large MAE simply because it makes mistakes on expensive products.
-
-Therefore, the pipeline uses:
-
-- log-space modelling;
-- MAPE;
-- MedAPE as the primary validation metric.
-
-MedAPE is especially useful because it is robust to extreme values and better reflects the typical percentage error.
-
-#### Category heterogeneity
-
-The median q90/q10 price ratio within a category is around **8.5×**.
-
-This means that even within the same category, product prices vary widely. Category information is useful, but it cannot fully determine price by itself.
-
-This motivates using category-level signals as calibration and fallback features, rather than relying on category as the main price predictor.
-
-#### Currency
-
-The prices appear to be in **Indonesian Rupiah, IDR**. This is consistent with the observed price scale and Indonesian e-commerce promotion patterns such as 11.11 and 12.12 sales.
-
-**Insert figure here:**
-
-```markdown
-![Log price distribution and per-product range ratio](figures/log_price_distribution_range_ratio.png)
-```
-
----
+Around **84% of products have constant prices across all observations**. This means that for most products, price does not change often. Therefore, `last_price` becomes the dominant predictor.
 
 ### 2.2 Outlier Detection and Data Cleaning
-
-Outlier detection was handled iteratively because the initial rules produced many false positives.
-
-#### Step 1 — Naive IQR rule
-
-The first attempt used a standard IQR-based outlier rule.
-
-However, this flagged around **28% of rows**, which was too high. Manual inspection showed that this rule failed on:
-
-- bounded variables such as `review_rating`;
-- heavy-tailed count variables such as `cmt_count`;
-- naturally skewed price-related fields.
-
-Because of this, the naive IQR rule was rejected.
-
-#### Step 2 — Per-product MAD z-score
-
-The next attempt used a per-product MAD z-score detector. This flagged around **5% of rows**.
-
-However, visual inspection showed that many flagged observations were not true outliers. A large portion represented sustained price changes, such as discounts, relistings, or real price updates.
-
-This showed that the detector needed to distinguish between:
-
-- isolated noise;
-- real change-points;
-- recurring discount patterns.
-
-#### Step 3 — Temporal isolation filter
-
-A temporal isolation filter was added so that only short runs of abnormal values would be flagged.
-
-This improved the detector, but it still incorrectly flagged some recurring short discount events as anomalies.
-
-#### Step 4 — Magnitude and non-recurrence filters
-
-To reduce false positives further, two additional conditions were added:
-
-- the deviation must be greater than **30%** from the product median;
-- the abnormal price should not recur frequently.
-
-This made the detector more precise.
-
-#### Step 5 — End-of-series protection
-
-The final challenge was distinguishing between a true anomaly and a price change at the end of the series.
-
-If the final observations of a product are abnormal, it is unclear whether they are:
-
-- temporary spikes;
-- real future price changes;
-- discounts that continue into the outage day.
-
-To avoid incorrectly removing possible change-points, the detector protects a trailing run of at least two flagged points. Isolated single trailing spikes remain flagged.
-
-The final detector removes only high-confidence anomalies from the training data. Validation and test data are not modified.
-
-**Insert figure here:**
+Outlier detection was performed for each product to identify anomalies in the price data. During the process, some flagged observations appeared at the trailing end of the series, which made them tricky to handle since it was unclear whether they represented true anomalies or actual price changes. To avoid incorrectly removing potential price changes, these trailing flagged points were unflagged.
 
 ```markdown
-![Top 10 flagged products using final outlier detector](figures/final_outlier_detector_examples.png)
+![Top 10 flagged products using final outlier detector](figures/03_shop=1007168904.0_item=25320384940.0_model=250523731814.0.png)
+```
+
+```markdown
+![Top 10 flagged products using final outlier detector](figures/18_shop=1006572327.0_item=14699073855.0_model=156917164205.0.png.png)
 ```
 
 ---
