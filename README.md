@@ -4,7 +4,7 @@ Three approaches were tested:
 
 - **Approach 1 — Naive Global LightGBM**
 - **Approach 2 — Per-Product Ridge Regression**
-- **Approach 3 — Global LightGBM with historical features and anchor calibration**
+- **Approach 3 — Global LightGBM with historical features**
 
 The final selected approach is **Approach 3**, because it combines product history, marketplace-wide anchor signals, category-level correction, and robust log-space modelling.
 
