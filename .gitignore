@@ -6,7 +6,6 @@ env/
 images/
 
 # Data and environment files
-*.csv
 *.json
 .ipynb_checkpoints/
 .env
