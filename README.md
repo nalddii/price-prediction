@@ -24,11 +24,11 @@ Around **84% of products have constant prices across all observations**. This me
 Outlier detection was performed for each product to identify anomalies in the price data. During the process, some flagged observations appeared at the trailing end of the series, which made them tricky to handle since it was unclear whether they represented true anomalies or actual price changes. To avoid incorrectly removing potential price changes, these trailing flagged points were unflagged.
 
 ```markdown
-![Top 10 flagged products using final outlier detector](figures/03_shop=1007168904.0_item=25320384940.0_model=250523731814.0.png)
+![Top 10 flagged products using final outlier detector](figures/03_shop_1007168904.0_item_25320384940.0_model_250523731814.0.png)
 ```
 
 ```markdown
-![Top 10 flagged products using final outlier detector](figures/18_shop=1006572327.0_item=14699073855.0_model=156917164205.0.png.png)
+![Top 10 flagged products using final outlier detector](figures/18_shop_1006572327.0_item_14699073855.0_model_156917164205.0.png.png)
 ```
 
 ---
