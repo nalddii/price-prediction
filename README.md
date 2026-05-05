@@ -216,24 +216,23 @@ pip install -r requirements.txt
 
 ### 5.2 Run Prediction Script
 
-To generate predictions for a test file, run:
+Put your test file under data/test, then to generate predictions for a test file, run:
 
 ```bash
 python make_predictions.py <test_file> <model_name>
 ```
+available models a1_global, a2_per_product, a3_global
 
 Example:
 
 ```bash
 python make_predictions.py data/test.csv a3_global
 ```
-or
+or use default model (a3_global)
 
 ```bash
 python make_predictions.py data/test.csv
 ```
-The program will use default model (a3_global)
-
 
 ### 5.3 Expected Output
 
