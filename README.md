@@ -1,5 +1,3 @@
-#Price Prediction Pipeline
-
 This project solves an outage-day price. The goal is to reconstruct the missing product prices as accurately as possible using historical data and the anchor rows.
 
 Three approaches were tested:
