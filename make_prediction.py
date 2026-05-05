@@ -1,22 +1,3 @@
-"""
-Price Prediction CLI
-====================
-Usage:
-    python make_predictions.py <test_file> [model_name]
-
-Examples:
-    python make_predictions.py ecommerce_price_prediction-test-3-days.csv
-    python make_predictions.py my_test.csv a1_global
-    python make_predictions.py my_test.csv a2_per_product
-    python make_predictions.py my_test.csv a3_global
-
-Model files are looked up in <models_dir>/<model_name>{.lgb|.pkl}.
-The extension is chosen automatically from the approach prefix:
-    a1_*  → .lgb (LightGBM)
-    a2_*  → .pkl (per-product Ridges)
-    a3_*  → .lgb (LightGBM)
-"""
-
 import sys
 import time
 import warnings

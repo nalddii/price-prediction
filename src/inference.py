@@ -120,7 +120,6 @@ def _prepare_a2_features(df, train_df, anchors):
     df = inject_anchor_state(df, anchors, train_df)
     return df
 
-
 def _predict_with_ridges(df, models):
     preds = np.full(len(df), np.nan)
     feat_arr = df[A2_RIDGE_FEATS].fillna(0).values
